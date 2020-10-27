@@ -1,0 +1,24 @@
+package com.example
+
+import com.example.storage.{PostgresStorage, Storage}
+import org.apache.spark.sql.SparkSession
+
+trait SparkJob {
+
+  def main(args: Array[String]): Unit = {
+    val spark = SparkSession.builder().master("local[*]").appName(appName).getOrCreate()
+
+    parseAndRun(spark, args)
+
+    def parseAndRun(spark: SparkSession, args: Array[String]): Unit = {
+      new UsageOptionParser().parse(args, UsageConfig()) match {
+        case Some(config) => run(spark, config, new PostgresStorage(spark))
+        case None => throw new IllegalArgumentException("arguments provided to job are not valid")
+      }
+    }
+  }
+
+  def run(spark: SparkSession, config: UsageConfig, storage: Storage)
+
+  def appName: String
+}
